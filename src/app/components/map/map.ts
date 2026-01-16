@@ -27,7 +27,6 @@ export class MapComponent implements OnInit, OnDestroy {
   private clickHandler: any = null;
   public isAddModeActive: boolean = false;
 
-  // ADD THESE THREE LINES:
   public showDialog: boolean = false;
   public dialogLatitude: number = 0;
   public dialogLongitude: number = 0;
@@ -43,7 +42,6 @@ export class MapComponent implements OnInit, OnDestroy {
     this.authService.logout();
   }
 
-  // Handle location selection from search/filter
   onLocationSelected(location: any) {
     if (location) {
       this.zoomTo(location);
@@ -60,12 +58,11 @@ export class MapComponent implements OnInit, OnDestroy {
       container: this.mapViewEl.nativeElement,
       map: map,
       zoom: 5,
-      center: [30.8025, 26.8206] // Longitude, Latitude for Cairo
+      center: [30.8025, 26.8206] 
     });
 
     this.view.when(() => {
       this.loadPoints();
-      // Don't setup click interaction automatically
     });
   }
 
@@ -73,7 +70,6 @@ export class MapComponent implements OnInit, OnDestroy {
     this.setupSearchListener();
   }
 
-  // Toggle add mode on/off
   toggleAddMode() {
     this.isAddModeActive = !this.isAddModeActive;
 
@@ -84,7 +80,6 @@ export class MapComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Load all points from .NET
   loadPoints() {
     console.log('MapComponent: loadPoints called');
     this.locationService.getAllLocations().subscribe(
@@ -111,11 +106,10 @@ export class MapComponent implements OnInit, OnDestroy {
     );
   }
 
-  // Listen for location selection from asset manager (search or click)
   setupSearchListener() {
     if (this.sidebar) {
       this.sidebar.onLocationSelect
-        .pipe(takeUntil(this.destroy$)) // This automatically unsubscribes
+        .pipe(takeUntil(this.destroy$)) 
         .subscribe((location: any) => {
           this.zoomTo(location);
           this.highlightLocation(location);
@@ -131,7 +125,7 @@ export class MapComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Zoom to a location
+
   zoomTo(loc: any) {
     this.view.goTo({
       center: [loc.longitude, loc.latitude],
@@ -139,20 +133,17 @@ export class MapComponent implements OnInit, OnDestroy {
     }, { duration: 1000 });
   }
 
-  // Highlight a location with a special marker
   highlightLocation(loc: any) {
-    // Remove existing highlight
     if (this.highlightGraphic) {
       this.view.graphics.remove(this.highlightGraphic);
     }
 
-    // Add highlight marker in gold
     const point = { type: "point", longitude: loc.longitude, latitude: loc.latitude };
     this.highlightGraphic = new Graphic({
       geometry: point as any,
       symbol: {
         type: "simple-marker",
-        color: [255, 215, 0], // Gold color for highlight
+        color: [255, 215, 0], 
         size: 20,
         outline: { color: [255, 255, 255], width: 3 }
       } as any,
@@ -167,31 +158,22 @@ export class MapComponent implements OnInit, OnDestroy {
   }
 
   setupClickInteraction() {
-    // Remove existing handler if any
     if (this.clickHandler) {
       this.clickHandler.remove();
     }
 
     this.clickHandler = this.view.on("click", (event) => {
-      // 1. Capture coordinates from the ESRI map click event
       const lat = event.mapPoint.latitude;
       const lon = event.mapPoint.longitude;
-
-      // Update the values
       this.dialogLatitude = lat;
       this.dialogLongitude = lon;
       this.showDialog = true;
-
-      // 3. Open the dialog component
       this.cdr.detectChanges();
-
-      // 4. Important: Disable add mode so they don't click multiple times 
-      // while the dialog is open
       this.isAddModeActive = false;
       this.removeClickInteraction();
     });
   }
-  // Remove click interaction
+
   removeClickInteraction() {
     if (this.clickHandler) {
       this.clickHandler.remove();
@@ -199,12 +181,10 @@ export class MapComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Handle dialog close
   onDialogClose() {
     this.showDialog = false;
   }
 
-  // Handle dialog submit
   onDialogSubmit(data: any) {
     const newLocation = {
       name: data.name,
@@ -226,8 +206,7 @@ export class MapComponent implements OnInit, OnDestroy {
       }
     });
   }
-
-  // Helper to draw markers
+  
   addGraphic(
     lat: number,
     lon: number,

@@ -55,7 +55,7 @@ export class RegisterComponent {
     }).subscribe({
       next: (res) => {
         console.log('Registration Success!', res);
-        this.router.navigate(['/']); // Redirect to login after successful registration
+        this.router.navigate(['/']); 
       },
       error: (err) => {
         this.errorMessage = 'Registration failed. Please try again.';

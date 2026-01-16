@@ -22,7 +22,6 @@ export class LocationService {
     );
   }
 
-  // 1. Get all points from .NET
   getAllLocations(): Observable<AssetLocation[]> {
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
@@ -31,7 +30,6 @@ export class LocationService {
     );
   }
 
-  // 2. Save a new point to .NET
   createLocation(location: AssetLocation): Observable<AssetLocation> {
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
@@ -48,7 +46,6 @@ export class LocationService {
         console.log(
           `[LocationService] New location ID from response: ${newLocation.id}`
         );
-        // If backend didn't return ID, we'll refresh to get it
         if (!newLocation.id) {
           console.log(
             '[LocationService] No ID in response, will refresh from server'
@@ -64,11 +61,10 @@ export class LocationService {
         }
       }),
       switchMap(newLocation => {
-        // Always refresh from server to ensure we have the correct ID
         console.log('[LocationService] Refreshing locations after create');
         return this.getAllLocations().pipe(
           switchMap(allLocations => {
-            // Return the new location with its proper ID from server
+            
             const createdItem = allLocations.find(
               loc =>
                 loc.name === newLocation.name &&
@@ -86,7 +82,6 @@ export class LocationService {
     );
   }
 
-  // 3. Update an existing point
   updateLocation(id: number, location: AssetLocation): Observable<AssetLocation> {
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders()
@@ -108,7 +103,7 @@ export class LocationService {
     );
   }
 
-  // 4. Delete a point
+
   deleteLocation(id: number): Observable<void> {
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);

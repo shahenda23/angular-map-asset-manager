@@ -7,7 +7,7 @@ import { Router } from '@angular/router';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule], // Essential for the form to work
+  imports: [CommonModule, FormsModule], 
   templateUrl: './login.html',
   styleUrl: './login.scss'
 })
@@ -21,7 +21,7 @@ export class LoginComponent {
     this.authService.login(this.loginData).subscribe({
       next: (res) => {
         console.log('Login Success!', res);
-        this.router.navigate(['/map']); // Send user to map after login
+        this.router.navigate(['/map']); 
       },
       error: (err) => {
         this.errorMessage = 'Invalid username or password';
@@ -31,6 +31,6 @@ export class LoginComponent {
   }
 
   onRegisterRedirect() {
-    this.router.navigate(['/register']); // Navigate to the registration page
+    this.router.navigate(['/register']); 
   }
 }

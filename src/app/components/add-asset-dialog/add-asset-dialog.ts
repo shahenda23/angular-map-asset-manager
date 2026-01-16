@@ -22,7 +22,6 @@ export class AddAssetDialogComponent {
   errors: any = {};
 
   handleSubmit() {
-    // Validation
     this.errors = {};
     
     if (!this.assetName.trim()) {
@@ -30,7 +29,6 @@ export class AddAssetDialogComponent {
       return;
     }
 
-    // Emit the data
     this.onSubmit.emit({
       name: this.assetName.trim(),
       description: this.assetDesc.trim(),
@@ -38,7 +36,6 @@ export class AddAssetDialogComponent {
       longitude: this.longitude
     });
 
-    // Reset form
     this.resetForm();
   }
 

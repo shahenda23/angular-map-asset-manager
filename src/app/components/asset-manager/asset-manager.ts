@@ -48,7 +48,6 @@ export class AssetManagerComponent implements OnInit {
   constructor(private locationService: LocationService, private fb: FormBuilder) {
     this.locations$ = this.locationService.locations$;
 
-    // Create filtered locations observable that combines locations and search term
     this.filteredLocations$ = combineLatest([
       this.locations$ as any,
       this.searchTerm$ as any
@@ -89,7 +88,6 @@ export class AssetManagerComponent implements OnInit {
   }
 
   ngOnInit() {
-    // Data loads automatically from service
   }
 
   onSearch(searchTerm: string) {
@@ -100,7 +98,6 @@ export class AssetManagerComponent implements OnInit {
     this.searchTerm$.next('');
   }
 
-  // Map calls this to update the list after a click-add
   public refreshList() {
     this.locationService.getAllLocations().subscribe();
   }
@@ -109,7 +106,7 @@ export class AssetManagerComponent implements OnInit {
 
   private showMessage(text: string, type: 'success' | 'error') {
     this.feedbackMessage = { text, type };
-    setTimeout(() => this.feedbackMessage = null, 3000); // Auto-hide after 3 seconds
+    setTimeout(() => this.feedbackMessage = null, 3000); 
   }
 
   saveAsset() {
@@ -117,8 +114,6 @@ export class AssetManagerComponent implements OnInit {
       this.showMessage('Please fill in all required fields correctly.', 'error');
       return;
     }
-
-    // Construct the payload to match the AssetLocation interface [cite: 105, 111]
     const payload: any = {
       name: this.assetForm.value.name,
       description: this.assetForm.value.description,
@@ -127,7 +122,6 @@ export class AssetManagerComponent implements OnInit {
     };
 
     if (this.editingId) {
-      // Include the ID for updates [cite: 102, 107]
       payload.id = this.editingId;
       
       this.locationService.updateLocation(this.editingId, payload).subscribe({

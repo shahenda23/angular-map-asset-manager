@@ -1,5 +1,5 @@
 export interface AssetLocation {
-  id?: number;         // Optional because new points don't have an ID yet
+  id?: number;         
   name: string;
   latitude: number;
   longitude: number;
