@@ -1,0 +1,23 @@
+
+<app-navbar></app-navbar>
+
+<div class="content-wrapper">
+  <app-asset-manager (onLocationSelect)="onLocationSelected($event)" (onDataChanged)="loadPoints()">
+  </app-asset-manager>
+
+  <div class="map-container">
+    
+    <button 
+      class="toggle-add-mode-btn" 
+      [class.active]="isAddModeActive"
+      (click)="toggleAddMode()"
+      title="{{ isAddModeActive ? 'Disable Add Mode' : 'Enable Add Mode' }}">
+      <span class="icon">{{ isAddModeActive ? '✓' : '+' }}</span>
+      <span class="text">{{ isAddModeActive ? 'Adding Mode ON' : 'Click to Add Points' }}</span>
+    </button>
+    
+    <div #mapViewNode class="map-div"></div>
+  </div>
+</div>
+
+

@@ -1,0 +1,71 @@
+<div class="sidebar-container">
+  <app-confirmation-dialog title="Delete Location"
+    message="Are you sure you want to delete this location? This action cannot be undone." confirmButtonText="Delete"
+    cancelButtonText="Cancel" (confirmed)="onDeleteConfirmed()" (cancelled)="onDeleteCancelled()">
+  </app-confirmation-dialog>
+  <div class="form-section">
+    <h4>{{ editingId ? 'Edit Asset' : 'New Asset' }}</h4>
+    <div class="form-group">
+      <input [formControl]="nameControl" placeholder="Name *">
+      <span class="error" *ngIf="nameControl.hasError('required') && nameControl.touched">
+        Name is required
+      </span>
+    </div>
+    <div class="coord-row">
+      <div class="form-group">
+        <input type="number" [formControl]="latitudeControl" placeholder="Latitude *" step="0.000001">
+        <span class="error" *ngIf="latitudeControl.hasError('required') && latitudeControl.touched">
+          Latitude is required
+        </span>
+        <span class="error" *ngIf="latitudeControl.hasError('latitudeRange') && latitudeControl.touched">
+          Latitude must be between -90 and 90
+        </span>
+        <span class="error" *ngIf="latitudeControl.hasError('invalidLatitude') && latitudeControl.touched">
+          Latitude must be a valid number
+        </span>
+      </div>
+      <div class="form-group">
+        <input type="number" [formControl]="longitudeControl" placeholder="Longitude *" step="0.000001">
+        <span class="error" *ngIf="longitudeControl.hasError('required') && longitudeControl.touched">
+          Longitude is required
+        </span>
+        <span class="error" *ngIf="longitudeControl.hasError('longitudeRange') && longitudeControl.touched">
+          Longitude must be between -180 and 180
+        </span>
+        <span class="error" *ngIf="longitudeControl.hasError('invalidLongitude') && longitudeControl.touched">
+          Longitude must be a valid number
+        </span>
+      </div>
+    </div>
+    <div class="form-group">
+      <input [formControl]="descriptionControl" placeholder="Description">
+    </div>
+    <div class="button-group">
+      <button (click)="saveAsset()" [disabled]="!assetForm.valid">
+        {{ editingId ? 'Update Asset' : 'Add Asset' }}
+      </button>
+      <button *ngIf="editingId" (click)="resetForm()" class="cancel-btn">Cancel</button>
+    </div>
+  </div>
+
+  <div class="list-section">
+    <div class="search-section">
+      <input type="text" placeholder="Search by name..." (input)="onSearch($event.target.value)" class="search-input">
+    </div>
+    <div *ngFor="let loc of (filteredLocations$ | async)" class="asset-card">
+      <div class="card-content" (click)="selectLocation(loc)">
+        <strong>{{ loc.name }}</strong>
+        <span class="coords">{{ loc.latitude }}, {{ loc.longitude }}</span>
+        <span class="description" *ngIf="loc.description">{{ loc.description }}</span>
+      </div>
+      <div class="card-actions">
+        <button class="edit-btn" (click)="editLocation(loc)" title="Edit">
+          📝
+        </button>
+        <button class="delete-btn" (click)="deleteLocation(loc.id, $event)" title="Delete">
+          ❌
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,46 @@
+<div class="dialog-overlay" *ngIf="isVisible">
+  <div class="dialog-box">
+    <div class="dialog-header">
+      <h3>Add New Point</h3>
+      <button class="close-btn" (click)="onCancel()">×</button>
+    </div>
+
+    <div class="dialog-content">
+      <div class="coordinates-info">
+        <span>📍 {{ latitude.toFixed(6) }}, {{ longitude.toFixed(6) }}</span>
+      </div>
+
+      <form [formGroup]="pointForm">
+        <div class="form-group">
+          <label for="pointName">Name <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="pointName" 
+            [formControl]="nameControl"
+            placeholder="Enter point name"
+            autofocus>
+          <span class="error" *ngIf="nameControl.hasError('required') && nameControl.touched">
+            Name is required
+          </span>
+          <span class="error" *ngIf="nameControl.hasError('minlength') && nameControl.touched">
+            Name must be at least 2 characters
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="pointDescription">Description</label>
+          <textarea 
+            id="pointDescription" 
+            formControlName="description"
+            placeholder="Enter description (optional)"
+            rows="3"></textarea>
+        </div>
+      </form>
+    </div>
+
+    <div class="dialog-actions">
+      <button class="btn-cancel" (click)="onCancel()">Cancel</button>
+      <button class="btn-confirm" (click)="onConfirm()" [disabled]="!pointForm.valid">Add Point</button>
+    </div>
+  </div>
+</div>
