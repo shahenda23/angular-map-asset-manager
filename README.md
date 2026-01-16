@@ -97,7 +97,7 @@ export const environment = {
 };
 ```
 
-For production, update `src/environments/environment.prod.ts` with your production API URL.
+
 
 ### 4. Backend Setup
 
