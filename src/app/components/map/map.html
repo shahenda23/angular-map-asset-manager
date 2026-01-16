@@ -18,6 +18,14 @@
     
     <div #mapViewNode class="map-div"></div>
   </div>
+
+  <app-add-asset-dialog 
+  [isOpen]="showDialog"
+  [latitude]="dialogLatitude"
+  [longitude]="dialogLongitude"
+  (onClose)="onDialogClose()"
+  (onSubmit)="onDialogSubmit($event)">
+</app-add-asset-dialog>
 </div>
 
 

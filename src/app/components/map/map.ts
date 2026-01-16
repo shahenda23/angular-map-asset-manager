@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import Map from '@arcgis/core/Map';
 import MapView from '@arcgis/core/views/MapView';
 import { AuthService } from '../../services/auth.service';
@@ -8,27 +8,35 @@ import { CommonModule } from '@angular/common';
 import { AssetManagerComponent } from '../asset-manager/asset-manager';
 import { NavbarComponent } from '../navbar/navbar';
 import { Subject, takeUntil } from 'rxjs';
+import { AddAssetDialogComponent } from '../add-asset-dialog/add-asset-dialog';
 
 @Component({
   selector: 'app-map',
   standalone: true,
-  imports: [CommonModule, AssetManagerComponent, NavbarComponent],
+  imports: [CommonModule, AssetManagerComponent, NavbarComponent, AddAssetDialogComponent],
   templateUrl: './map.html',
   styleUrl: './map.scss'
 })
-export class MapComponent implements OnInit , OnDestroy {
+export class MapComponent implements OnInit, OnDestroy {
   @ViewChild('mapViewNode', { static: true }) private mapViewEl!: ElementRef;
   @ViewChild(AssetManagerComponent) sidebar!: AssetManagerComponent;
   private destroy$ = new Subject<void>();
 
   private view!: MapView;
   private highlightGraphic: Graphic | null = null;
-  private clickHandler: any = null; // Store the click handler reference
-  public isAddModeActive: boolean = false; // Track if add mode is active
+  private clickHandler: any = null;
+  public isAddModeActive: boolean = false;
+
+  // ADD THESE THREE LINES:
+  public showDialog: boolean = false;
+  public dialogLatitude: number = 0;
+  public dialogLongitude: number = 0;
+
 
   constructor(
     private authService: AuthService,
-    private locationService: LocationService
+    private locationService: LocationService,
+    private cdr: ChangeDetectorRef
   ) { }
 
   onLogout() {
@@ -104,7 +112,7 @@ export class MapComponent implements OnInit , OnDestroy {
   }
 
   // Listen for location selection from asset manager (search or click)
-setupSearchListener() {
+  setupSearchListener() {
     if (this.sidebar) {
       this.sidebar.onLocationSelect
         .pipe(takeUntil(this.destroy$)) // This automatically unsubscribes
@@ -158,7 +166,6 @@ setupSearchListener() {
     this.view.graphics.add(this.highlightGraphic);
   }
 
-  // Click to create a new point
   setupClickInteraction() {
     // Remove existing handler if any
     if (this.clickHandler) {
@@ -166,43 +173,58 @@ setupSearchListener() {
     }
 
     this.clickHandler = this.view.on("click", (event) => {
+      // 1. Capture coordinates from the ESRI map click event
       const lat = event.mapPoint.latitude;
       const lon = event.mapPoint.longitude;
 
-      const assetName = prompt("Enter Name for this Asset:");
-      const assetDesc = prompt("Enter Description:");
+      // Update the values
+      this.dialogLatitude = lat;
+      this.dialogLongitude = lon;
+      this.showDialog = true;
 
-      if (assetName) {
-        const newLocation = {
-          name: assetName,
-          latitude: lat,
-          longitude: lon,
-          description: assetDesc ?? ''
-        };
+      // 3. Open the dialog component
+      this.cdr.detectChanges();
 
-        this.locationService.createLocation(newLocation).subscribe({
-          next: (res) => {
-            this.addGraphic(
-              res.latitude,
-              res.longitude,
-              res.name,
-              res.description ?? '',
-              res.id
-            );
-            console.log("Asset created successfully", res);
-          },
-          error: (err) => alert("Failed to save asset to database.")
-        });
-      }
+      // 4. Important: Disable add mode so they don't click multiple times 
+      // while the dialog is open
+      this.isAddModeActive = false;
+      this.removeClickInteraction();
     });
   }
-
   // Remove click interaction
   removeClickInteraction() {
     if (this.clickHandler) {
       this.clickHandler.remove();
       this.clickHandler = null;
     }
+  }
+
+  // Handle dialog close
+  onDialogClose() {
+    this.showDialog = false;
+  }
+
+  // Handle dialog submit
+  onDialogSubmit(data: any) {
+    const newLocation = {
+      name: data.name,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      description: data.description
+    };
+
+    this.locationService.createLocation(newLocation).subscribe({
+      next: (res: any) => {
+        const locationId = res?.id || res?.locationId || res;
+        this.addGraphic(data.latitude, data.longitude, data.name, data.description, locationId);
+        console.log("Asset created successfully");
+        this.showDialog = false;
+      },
+      error: (err) => {
+        console.error(err);
+        alert("Failed to save asset to database.");
+      }
+    });
   }
 
   // Helper to draw markers
