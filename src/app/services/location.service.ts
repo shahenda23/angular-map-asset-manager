@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Observable, BehaviorSubject } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { tap, switchMap } from 'rxjs/operators';
 import { AssetLocation } from '../models/location.model';
 
 @Injectable({ providedIn: 'root' })
@@ -35,10 +35,53 @@ export class LocationService {
   createLocation(location: AssetLocation): Observable<AssetLocation> {
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    console.log(
+      '[LocationService] Creating new location:',
+      location
+    );
     return this.http.post<AssetLocation>(this.apiUrl, location, { headers }).pipe(
       tap(newLocation => {
-        const currentLocations = this.locationsSubject.value;
-        this.locationsSubject.next([...currentLocations, newLocation]);
+        console.log(
+          '[LocationService] Create response received:',
+          newLocation
+        );
+        console.log(
+          `[LocationService] New location ID from response: ${newLocation.id}`
+        );
+        // If backend didn't return ID, we'll refresh to get it
+        if (!newLocation.id) {
+          console.log(
+            '[LocationService] No ID in response, will refresh from server'
+          );
+        } else {
+          const currentLocations = this.locationsSubject.value;
+          const updated = [...currentLocations, newLocation];
+          console.log(
+            `[LocationService] Updated locations array (count: ${updated.length}):`,
+            updated
+          );
+          this.locationsSubject.next(updated);
+        }
+      }),
+      switchMap(newLocation => {
+        // Always refresh from server to ensure we have the correct ID
+        console.log('[LocationService] Refreshing locations after create');
+        return this.getAllLocations().pipe(
+          switchMap(allLocations => {
+            // Return the new location with its proper ID from server
+            const createdItem = allLocations.find(
+              loc =>
+                loc.name === newLocation.name &&
+                loc.latitude === newLocation.latitude &&
+                loc.longitude === newLocation.longitude
+            );
+            console.log(
+              '[LocationService] Found created item with ID:',
+              createdItem?.id
+            );
+            return [createdItem || newLocation];
+          })
+        );
       })
     );
   }
@@ -69,10 +112,47 @@ export class LocationService {
   deleteLocation(id: number): Observable<void> {
     const token = localStorage.getItem('token');
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    console.log(`[LocationService] Deleting location with ID: ${id}`);
+    console.log(
+      `[LocationService] Current locations BEFORE delete:`,
+      this.locationsSubject.value
+    );
+
     return this.http.delete<void>(`${this.apiUrl}/${id}`, { headers }).pipe(
-      tap(() => {
-        const currentLocations = this.locationsSubject.value;
-        this.locationsSubject.next(currentLocations.filter(loc => loc.id !== id));
+      tap({
+        next: () => {
+          console.log(`[LocationService] Delete HTTP successful for ID: ${id}`);
+          console.log(
+            `[LocationService] Current locations before refresh:`,
+            this.locationsSubject.value
+          );
+        },
+        error: (err) => {
+          console.error(`[LocationService] Delete HTTP failed for ID: ${id}`, err);
+        }
+      }),
+      switchMap(() => {
+        console.log(
+          `[LocationService] Fetching fresh locations from backend after delete`
+        );
+        return this.http.get<AssetLocation[]>(this.apiUrl, { headers }).pipe(
+          tap(data => {
+            console.log(
+              `[LocationService] Received ${data.length} locations from server`
+            );
+            console.log(`[LocationService] New data:`, data);
+            this.locationsSubject.next(data);
+          })
+        );
+      }),
+      switchMap(() => {
+        return new Observable<void>(observer => {
+          console.log(
+            `[LocationService] Observable chain complete, notifying subscribers`
+          );
+          observer.next();
+          observer.complete();
+        });
       })
     );
   }

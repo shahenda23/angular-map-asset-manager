@@ -2,23 +2,43 @@
   <div class="card">
     <h2>GeoAsset Register</h2>
 
-    <form (ngSubmit)="onRegister()">
+    <form [formGroup]="registerForm" (ngSubmit)="onRegister()">
       <div class="form-group">
         <label>Username</label>
-        <input type="text" name="username" [(ngModel)]="registerData.username" required>
+        <input type="text" formControlName="username" placeholder="Username">
+        <span class="error" *ngIf="usernameControl?.hasError('required') && usernameControl?.touched">
+          Username is required
+        </span>
+        <span class="error" *ngIf="usernameControl?.hasError('minlength') && usernameControl?.touched">
+          Username must be at least 3 characters
+        </span>
       </div>
 
       <div class="form-group">
         <label>Email</label>
-        <input type="text" name="username" [(ngModel)]="registerData.email" required>
+        <input type="email" formControlName="email" placeholder="Email">
+        <span class="error" *ngIf="emailControl?.hasError('required') && emailControl?.touched">
+          Email is required
+        </span>
+        <span class="error" *ngIf="emailControl?.hasError('email') && emailControl?.touched">
+          Please enter a valid email address
+        </span>
       </div>
 
       <div class="form-group">
         <label>Password</label>
-        <input type="password" name="password" [(ngModel)]="registerData.password" required>
+        <input type="password" formControlName="password" placeholder="Password">
+        <span class="error" *ngIf="passwordControl?.hasError('required') && passwordControl?.touched">
+          Password is required
+        </span>
+        <span class="error" *ngIf="passwordControl?.hasError('minlength') && passwordControl?.touched">
+          Password must be at least 6 characters and must include a number and a special character
+        </span>
       </div>
 
-      <button type="submit">Register</button>
+      <button type="submit" [disabled]="!registerForm.valid || isSubmitting">
+        {{ isSubmitting ? 'Registering...' : 'Register' }}
+      </button>
 
       <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
     </form>

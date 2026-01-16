@@ -105,53 +105,55 @@ export class AssetManagerComponent implements OnInit {
     this.locationService.getAllLocations().subscribe();
   }
 
-  saveAsset() {
-    if (!this.assetForm.valid) return;
+  feedbackMessage: { text: string, type: 'success' | 'error' } | null = null;
 
-    const formValue = this.assetForm.value;
-    const payload = {
-      id: this.editingId || undefined,
-      name: formValue.name,
-      description: formValue.description || '',
-      latitude: parseFloat(formValue.latitude),
-      longitude: parseFloat(formValue.longitude)
+  private showMessage(text: string, type: 'success' | 'error') {
+    this.feedbackMessage = { text, type };
+    setTimeout(() => this.feedbackMessage = null, 3000); // Auto-hide after 3 seconds
+  }
+
+  saveAsset() {
+    if (this.assetForm.invalid) {
+      this.showMessage('Please fill in all required fields correctly.', 'error');
+      return;
+    }
+
+    // Construct the payload to match the AssetLocation interface [cite: 105, 111]
+    const payload: any = {
+      name: this.assetForm.value.name,
+      description: this.assetForm.value.description,
+      latitude: parseFloat(this.assetForm.value.latitude),
+      longitude: parseFloat(this.assetForm.value.longitude)
     };
 
     if (this.editingId) {
-      // Update existing location
-      console.log('Updating location with ID:', this.editingId, 'Payload:', payload);
-      this.locationService.updateLocation(this.editingId, payload).subscribe(
-        (response) => {
-          console.log('Update successful:', response);
+      // Include the ID for updates [cite: 102, 107]
+      payload.id = this.editingId;
+      
+      this.locationService.updateLocation(this.editingId, payload).subscribe({
+        next: () => {
+          this.showMessage('Location updated successfully!', 'success');
           this.resetForm();
           this.onDataChanged.emit();
         },
-        (error) => {
-          console.error('Error updating location:', error);
-          console.error('Error status:', error.status);
-          console.error('Error message:', error.message);
-          console.error('Error response:', error.error);
-          alert(`Failed to update location: ${error.error?.message || error.message || 'Unknown error'}`);
+        error: (error) => {
+          console.error('Update error:', error);
+          this.showMessage('Failed to update location.', 'error');
         }
-      );
+      });
     } else {
-      // Create new location
-      console.log('Creating new location with payload:', payload);
-      this.locationService.createLocation(payload).subscribe(
-        (response) => {
-          console.log('Create successful:', response);
+      this.locationService.createLocation(payload).subscribe({
+        next: (res) => {
+          this.showMessage('Location created successfully!', 'success');
+          this.resetForm();
           this.refreshList();
           this.onDataChanged.emit();
-          this.resetForm();
         },
-        (error) => {
-          console.error('Error creating location:', error);
-          console.error('Error status:', error.status);
-          console.error('Error message:', error.message);
-          console.error('Error response:', error.error);
-          alert(`Failed to create location: ${error.error?.message || error.message || 'Unknown error'}`);
+        error: (err) => {
+          console.error('Create error:', err);
+          this.showMessage('Failed to create location.', 'error');
         }
-      );
+      });
     }
   }
 
@@ -167,15 +169,29 @@ export class AssetManagerComponent implements OnInit {
 
   deleteLocation(id: number, event: Event) {
     event.stopPropagation();
+    console.log('deleteLocation called with ID:', id, 'Type:', typeof id);
     this.deleteLocationId = id;
     this.confirmDialog.isVisible = true;
   }
 
   onDeleteConfirmed() {
     if (this.deleteLocationId) {
-      this.locationService.deleteLocation(this.deleteLocationId).subscribe(() => {
-        this.onDataChanged.emit();
-        this.deleteLocationId = null;
+      console.log('Confirming delete for ID:', this.deleteLocationId);
+      this.locationService.deleteLocation(this.deleteLocationId).subscribe({
+        next: () => {
+          console.log('Delete completed, emitting onDataChanged');
+          this.onDataChanged.emit();
+          this.deleteLocationId = null;
+        },
+        error: (err) => {
+          console.error('Error deleting location:', err);
+          alert(
+            `Failed to delete location: ${err.error?.message ||
+            err.message ||
+            'Unknown error'}`
+          );
+          this.deleteLocationId = null;
+        }
       });
     }
   }

@@ -1,3 +1,11 @@
+<div *ngIf="feedbackMessage" 
+     [ngClass]="feedbackMessage.type === 'success' ? 'feedback-success' : 'feedback-error'" 
+     class="feedback-message">
+  <span class="feedback-icon">
+    {{ feedbackMessage.type === 'success' ? '✓' : '✕' }}
+  </span>
+  <span class="feedback-text">{{ feedbackMessage.text }}</span>
+</div>
 <div class="sidebar-container">
   <app-confirmation-dialog title="Delete Location"
     message="Are you sure you want to delete this location? This action cannot be undone." confirmButtonText="Delete"
