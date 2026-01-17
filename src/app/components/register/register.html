@@ -1,49 +1,85 @@
 <div class="register-container">
   <div class="card">
-    <h2>GeoAsset Register</h2>
-
-    <form [formGroup]="registerForm" (ngSubmit)="onRegister()">
+    <h2>Create Account</h2>
+    
+    <form #registerForm="ngForm" (ngSubmit)="onRegister()">
       <div class="form-group">
-        <label>Username</label>
-        <input type="text" formControlName="username" placeholder="Username">
-        <span class="error" *ngIf="usernameControl?.hasError('required') && usernameControl?.touched">
-          Username is required
-        </span>
-        <span class="error" *ngIf="usernameControl?.hasError('minlength') && usernameControl?.touched">
-          Username must be at least 3 characters
-        </span>
+        <label>Username *</label>
+        <input 
+          type="text" 
+          name="username"
+          [(ngModel)]="registerData.username"
+          #username="ngModel"
+          required
+          minlength="3"
+          [class.input-error]="username.invalid && username.touched"
+          placeholder="Enter username"
+        >
+        <small class="error" *ngIf="username.invalid && username.touched">
+          Username is required (min 3 characters)
+        </small>
       </div>
 
       <div class="form-group">
-        <label>Email</label>
-        <input type="email" formControlName="email" placeholder="Email">
-        <span class="error" *ngIf="emailControl?.hasError('required') && emailControl?.touched">
-          Email is required
-        </span>
-        <span class="error" *ngIf="emailControl?.hasError('email') && emailControl?.touched">
-          Please enter a valid email address
-        </span>
+        <label>Email *</label>
+        <input 
+          type="email" 
+          name="email"
+          [(ngModel)]="registerData.email"
+          #email="ngModel"
+          required
+          email
+          [class.input-error]="email.invalid && email.touched"
+          placeholder="Enter email"
+        >
+        <small class="error" *ngIf="email.invalid && email.touched">
+          Valid email is required
+        </small>
       </div>
 
       <div class="form-group">
-        <label>Password</label>
-        <input type="password" formControlName="password" placeholder="Password">
-        <span class="error" *ngIf="passwordControl?.hasError('required') && passwordControl?.touched">
-          Password is required
-        </span>
-        <span class="error" *ngIf="passwordControl?.hasError('minlength') && passwordControl?.touched">
-          Password must be at least 6 characters and must include a number and a special character
-        </span>
+        <label>Password *</label>
+        <input 
+          type="password" 
+          name="password"
+          [(ngModel)]="registerData.password"
+          #password="ngModel"
+          required
+          minlength="6"
+          [class.input-error]="password.invalid && password.touched"
+          placeholder="Enter password"
+        >
+        <div *ngIf="password.touched">
+          <small class="error" *ngIf="registerData.password.length < 6">
+            Min 6 characters required
+          </small>
+          <small class="error" *ngIf="registerData.password.length >= 6 && !hasUppercase()">
+            Missing an uppercase letter
+          </small>
+          <small class="error" *ngIf="registerData.password.length >= 6 && !hasNumber()">
+            Missing a number
+          </small>
+          <small class="error" *ngIf="registerData.password.length >= 6 && !hasSpecialChar()">
+            Missing a special character (!@#$%^&*)
+          </small>
+        </div>
       </div>
 
-      <button type="submit" [disabled]="!registerForm.valid || isSubmitting">
-        {{ isSubmitting ? 'Registering...' : 'Register' }}
+      <div class="success-box" *ngIf="successMessage">
+        {{ successMessage }}
+      </div>
+
+      <div class="error-box" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+
+      <button type="submit" [disabled]="registerForm.invalid || !isPasswordStrong() || isSubmitting">
+        {{ isSubmitting ? 'Creating Account...' : 'Register' }}
       </button>
-
-      <p class="error" *ngIf="errorMessage">{{ errorMessage }}</p>
     </form>
+
     <p class="login-redirect">
-      Already have an account?
+      Already have an account? 
       <a (click)="onLoginRedirect()">Login here</a>
     </p>
   </div>
